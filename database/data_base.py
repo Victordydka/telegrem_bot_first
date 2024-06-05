@@ -2,7 +2,7 @@ import sqlite3
 
 #инициализация базы данных
 def initialize_db():
-    conn = sqlite3.connect('bot_databaze.dp')           #подключение к базе данных и называем её
+    conn = sqlite3.connect('bot_databaze.db')           #подключение к базе данных и называем её
     cursor = conn.cursor()                              #наш запрос, подключаемся к базе данных
 
     #создаём таблицу если она не создана, называем (users)
@@ -26,7 +26,7 @@ def initialize_db():
 
 
 def add_user(user_id, username, first_name, last_name):
-    conn = sqlite3.connect('bot_databaze.dp')  # подключение к базе данных и называем её
+    conn = sqlite3.connect('bot_databaze.db')
     cursor = conn.cursor()
 
     #наш запрос
@@ -34,16 +34,16 @@ def add_user(user_id, username, first_name, last_name):
     #VALUES (?, ?, ?, ?) - в этих местах мы обязаны что-то передать, а в
 
     cursor.execute('''
-        INCERT INTO users (user_id, username, first_name, last_name)
+        INSERT INTO users (user_id, username, first_name, last_name)
         VALUES (?, ?, ?, ?)
     ''', (user_id, username, first_name, last_name))
     conn.commit()
-    conn.cursor()
+    conn.close()
 
 
 
 def get_user(user_id):
-    conn = sqlite3.connect('bot_databaze.dp')
+    conn = sqlite3.connect('bot_databaze.db')
     cursor = conn.cursor()
     cursor.execute('''
         SELECT * FROM users WHERE user_id = ?
