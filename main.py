@@ -14,6 +14,7 @@ from config import TELEGRAM_TOKEN
 from keyboard.keyboards import get_keyboard_1, get_keyboard_2
 from keyboard.key_inline import get_keyboard_inline_1, get_keyboard_inline_2, get_keyboard_inline_3, get_keyboard_inline_ege, get_keyboard_inline_not_url1
 from database.data_base import initialize_db, add_user, get_user
+from picture_bot import generate_image
 
 
 
@@ -31,9 +32,27 @@ async def start(message: types.Message):
     user = get_user(message.from_user.id)
     if user is None:
         add_user(message.from_user.id, message.from_user.username, message.from_user.first_name, message.from_user.last_name)
-        await message.answer('Привет, я твой первый бот', reply_markup=get_keyboard_1())
+        await message.answer('Привет, я твой первый бот', reply_markup=get_keyboard_1(), reply=generate_image())
     else:
         await message.answer('Привет, я твой первый бот', reply_markup=get_keyboard_1())
+
+
+
+#Генерация изображения
+@dp.message_handler()
+async def handler_message(message: types.Message):
+    user_text = message.text
+    await message.reply('Идёт генерация изображения')
+
+    try:
+        image_data = generate_image(user_text)
+        await message.reply_photo(photo=image_data)
+    except Exception as e:
+        await message.reply(f'Произошла ошибка {e}')
+
+
+
+
 
 
 #после нажатия на команду егэ
