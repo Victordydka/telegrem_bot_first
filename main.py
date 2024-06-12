@@ -14,8 +14,8 @@ from config import TELEGRAM_TOKEN
 from keyboard.keyboards import get_keyboard_1, get_keyboard_2
 from keyboard.key_inline import get_keyboard_inline_1, get_keyboard_inline_2, get_keyboard_inline_3, get_keyboard_inline_ege, get_keyboard_inline_not_url1
 from database.data_base import initialize_db, add_user, get_user
-from picture_bot import generate_image
-
+from neironka.picture_bot import generate_image
+from neironka.yandex_gpt_bot import generate_text
 
 
 bot = Bot(token=TELEGRAM_TOKEN)     #токен бота=нашему токену
@@ -32,23 +32,52 @@ async def start(message: types.Message):
     user = get_user(message.from_user.id)
     if user is None:
         add_user(message.from_user.id, message.from_user.username, message.from_user.first_name, message.from_user.last_name)
-        await message.answer('Привет, я твой первый бот', reply_markup=get_keyboard_1(), reply=generate_image())
+        await message.answer('Привет, я твой первый бот, если хочешь воспользоваться генерацией текста, то напиши: /text <твой запрос>'
+                             ' , если хочешь воспользоваться генерацией картинок, то напиши: /image <твой запрос>', reply_markup=get_keyboard_1())
+
     else:
-        await message.answer('Привет, я твой первый бот', reply_markup=get_keyboard_1())
+        await message.answer('Привет, я твой первый бот, если хочешь воспользоваться генерацией текста, то напиши: /text <твой запрос>'
+                             ' , если хочешь воспользоваться генерацией картинок, то напиши: /image <твой запрос>', reply_markup=get_keyboard_1())
+
+
+
+
+# @dp.message_handler(commands='text')
+# async def generate_message(message: types.Message):
+#     response_text = generate_text(message.text)
+#     await message.answer(response_text)
+
+@dp.message_handler(commands='text')
+async def input_text(message: types.Message):
+    user_text = message.text
+    await message.answer('Напиши вопрос, а я постараюсь на него ответить')
+
+
+
+
+@dp.message_handler()
+async def generate_message(message: types.Message):
+    user_text = message.text
+    response_text = generate_text(message.text)
+    await message.answer(user_text)
+    await message.answer(response_text)
+
+
+
 
 
 
 #Генерация изображения
-@dp.message_handler()
+@dp.message_handler(commands='image')
 async def handler_message(message: types.Message):
     user_text = message.text
-    await message.reply('Идёт генерация изображения')
+    await message.answer('Идёт генерация изображения')
 
     try:
         image_data = generate_image(user_text)
         await message.reply_photo(photo=image_data)
     except Exception as e:
-        await message.reply(f'Произошла ошибка {e}')
+        await message.answer(f'Произошла ошибка {e}')
 
 
 
@@ -103,11 +132,12 @@ async def button_3_click(message: types.Message):
 async def button_5_click(message: types.Message):
     await message.answer('Тут ты можешь попросить меня о чём-нибудь', reply_markup=get_keyboard_1())
 
-@dp.message_handler(lambda message: message.text == 'Расскажи анекдот')
-async def button_3_1_click(message: types.Message):
-    await message.answer('— Будешь выходить — труп вынеси!'
-'— Может быть, мусор?'
-'— Может — мусор, может — сантехник, бог его знает…')
+# @dp.message_handler(lambda message: message.text == 'Расскажи анекдот')
+# async def button_3_1_click(message: types.Message):
+#     await message.answer('— Будешь выходить — труп вынеси!'
+# '— Может быть, мусор?'
+# '— Может — мусор, может — сантехник, бог его знает…')
+
 
 
 @dp.message_handler(lambda message: message.text == 'Вернуться на первую клавиатуру')
@@ -126,7 +156,9 @@ async def set_comands(bot: Bot):
     commands = [
         types.BotCommand(command='/start', description='Команда для запуска бота'),
         types.BotCommand(command='/random_number', description='Случайное число...'),
-        types.BotCommand(command='/ege', description='Ссылки на решу егэ')
+        types.BotCommand(command='/ege', description='Ссылки на решу егэ'),
+        types.BotCommand(command='/text', description='Генерация текста'),
+        # types.BotCommand(command='/generate_image', description='Генерация изображения')
     ]
     await bot.set_my_commands(commands)
 

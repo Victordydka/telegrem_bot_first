@@ -28,7 +28,7 @@ def generate_image(prompt_text):
 
     response = requests.post(url=url, headers=headers, json=prompt)
     result = response.json()
-    print(result)
+
 
     operation_id = result['id']
 
