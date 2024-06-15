@@ -66,10 +66,8 @@ async def set_comands(bot: Bot):
     ]
     await bot.set_my_commands(commands)
 
-
-picture_generation_state = False
-gpt_generation_state = False
 # Генерация картинок с помощью yandex gpt
+picture_generation_state = False
 @dp.message_handler(lambda message: message.text == 'Сгенерировать картинку')
 async def button_3_click(message: types.Message):
     await message.answer('Нажми на СТАРТ и напиши что тебе нужно сгенерировать', reply_markup= get_picture_start())
@@ -81,19 +79,21 @@ async def start_picture(callback_query: types.CallbackQuery):
         picture_generation_state = True
         await callback_query.message.answer('Генерация картинок работает, напиши мне задачу')
     else:
-        await callback_query.message.answer('Генерация картинок уже запущена')
+        picture_generation_state = True
+        await callback_query.message.answer('Я зарабтал')
 
 @dp.callback_query_handler(lambda callback_data: callback_data.data == 'stop_picture')
 async def stop_picture(callback_query: types.CallbackQuery):
     global picture_generation_state
     if picture_generation_state:
         picture_generation_state = False
-        await callback_query.message.answer('Генерация картинок приостановлена')
+        await callback_query.message.answer('Генерация картинок приостановила работу')
     else:
-        await callback_query.message.answer('Генерация картинок уже остановлена')
-
+        picture_generation_state = False
+        await callback_query.message.answer('Приостановил работу')
 
 #Генерация текста с помощью yandex gpt
+gpt_generation_state = False
 @dp.message_handler(lambda message: message.text == 'Сгенерировать ответ на вопрос')
 async def button_1_click(message: types.Message):
     await message.answer('Нажми на СТАРТ и задай свой вопрос', reply_markup=get_GPT_start())
@@ -105,7 +105,8 @@ async def start_GPT(callback_query: types.CallbackQuery):
         gpt_generation_state = True
         await callback_query.message.answer('GPT работает, спрашивай что тебе надо')
     else:
-        await callback_query.message.answer('GPT уже запущен')
+        gpt_generation_state = True
+        await callback_query.message.answer('GPT заработал')
 
 @dp.callback_query_handler(lambda callback_data: callback_data.data == 'stopGPT')
 async def stop_GPT(callback_query: types.CallbackQuery):
@@ -114,21 +115,27 @@ async def stop_GPT(callback_query: types.CallbackQuery):
         gpt_generation_state = False
         await callback_query.message.answer('GPT не работает')
     else:
-        await callback_query.message.answer('GPT уже не работает')
+        gpt_generation_state = False
+        await callback_query.message.answer('Генерация картинок перестала работать')
 
-@dp.message_handler(lambda message: gpt_generation_state and not picture_generation_state)
+@dp.message_handler()
 async def generate_message(message: types.Message):
-    response_text = generate_text(message.text)
-    await message.answer(response_text, reply_markup=get_GPT_stop())
-
-@dp.message_handler(lambda message: picture_generation_state and not gpt_generation_state)
+    if gpt_generation_state == True:
+        response_text = generate_text(message.text)
+        await message.answer(response_text, reply_markup=get_GPT_stop())
+    else:
+        await message.answer('Запусти GPT')
+@dp.message_handler()
 async def handler_message(message: types.Message):
     user_text = message.text
     await message.answer('Идёт генерация изображения')
 
     try:
-        image_data = generate_image(user_text)
-        await message.reply_photo(photo=image_data, reply_markup= get_picture_stop())
+        if picture_generation_state == True:
+            image_data = generate_image(user_text)
+            await message.reply_photo(photo=image_data, reply_markup= get_picture_stop())
+        else:
+            await message.answer('Запусти генерацию картинок')
     except Exception as e:
         await message.answer(f'Произошла ошибка {e}')
 
